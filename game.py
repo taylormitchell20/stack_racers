@@ -11,6 +11,54 @@ class Game:
             p = Player(player)
             self.players.append(p)
         self.phase = 'race' # might need to change to int
+        self.bets = {'A': [5,3,1], 'B': [5,3,1], 'C': [5,3,1], 'D': [5,3,1], 'E': [5,3,1]}
+        
+    def leg_leader(self):
+        for spot in reversed(self.board.track):
+            if len(spot) > 0:
+                return spot[-1]
+            
+    def leg_payout(self):
+        leader = self.leg_leader()
+
+        # pay out winners, reset winning racer's bets to empty list
+        for player in self.players:
+            print(f'{player.name} ended the leg with {player.money}')
+            print(f'{player.name} bet on: {player.bets}')
+            for bet in player.bets[leader]:
+                player.money += bet
+                print(f'{player.name} earned {bet} betting on {leader}')
+                _ = input('')
+            player.bets[leader] = []
+            # after winners have been cleared out, calculate penalties by counting remaining bets in dict
+            penalty = 0
+            for bets in player.bets.values():
+                for bet in bets:
+                    print(bet)
+                    if bet > 0:
+                        penalty += 1
+                    print(f'penalty total: {penalty}')
+                
+            print(f'{player.name} was penalized {penalty}')
+            player.money = player.money - penalty
+            _ = input('')
+
+            
+
+
+    def place_bet(self, player, racer):
+        bet = self.bets[racer][0]
+        player.bets[racer].append(bet)
+        self.bets[racer].pop(0)
+
+        print(player.bets)
+
+        
+
+    def reset_bets(self):
+        self.bets = {'A': [5,3,1], 'B': [5,3,1], 'C': [5,3,1], 'D': [5,3,1], 'E': [5,3,1]}
+        for player in self.players:
+            player.bets = {'A':[], 'B':[], 'C':[], 'D':[], 'E':[]}
 
 
     def next_player(self):
@@ -37,7 +85,7 @@ class Game:
                 target_spot = i + roll
                 if target_spot >= len(self.board.track) - 1:
                     target_spot = len(self.board.track) - 1
-                    print('##############GAME OVER ' + unit[-1] + ' WINS!!######################')
+                    
                     self.phase = 'end'
                     self.board.racers = []
                 for r in unit:
@@ -45,6 +93,7 @@ class Game:
                     self.board.track[target_spot].append(r)
                 break
 
+        self.players[self.current_player].money += 1
         print(f'### RACER: {racer}, UNIT: {unit}, ROLL: {roll} ###')   
 
 
@@ -75,43 +124,8 @@ class Board:
             spot = random.randint(0,2)
             self.track[spot].append(racer)
 
-
-    # def shuffle_racers(self):
-    #     racers = ['A','B','C','D','E']
-    #     random.shuffle(racers)
-    #     self.racers = racers
-
-
-    # def roll(self):
-    #     racer = self.racers[0]
-    #     print('racer: ' + racer)
-    #     unit = self.get_unit(racer)
-    #     roll = random.randint(1,3)
-    #     print(str(unit) + ' moved ' + str(roll) + ' spaces.')
-
-    #     for i, spot in enumerate(self.track):
-    #         if racer in spot:
-    #             target_spot = i + roll
-    #             if target_spot >= len(self.track) - 1:
-    #                 target_spot = len(self.track) - 1
-    #                 print('##############GAME OVER ' + unit[-1] + ' WINS!!######################')
-    #             for r in unit:
-    #                 spot.remove(r)
-    #                 self.track[target_spot].append(r)
-    #             break   
-
-
-    # def get_unit(self, racer):
-    #     unit = []
-    #     for i, spot in enumerate(self.track):
-    #         if racer in spot:
-    #             index = spot.index(racer)
-    #             for camel in spot[index:]:
-    #                 unit.append(camel)
-    #     print('unit:' + str(unit))
-    #     return unit
-    
-
 class Player:
     def __init__(self, name) -> None:
         self.name = name
+        self.bets = {'A':[], 'B':[], 'C':[], 'D':[], 'E':[]}
+        self.money = 0

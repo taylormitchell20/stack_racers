@@ -13,22 +13,41 @@ def clear():
 
 
 def leg():
-    g.shuffle_racers()
+    g.shuffle_racers() #equivalent to putting dice back into pyramid in tt game
+    
     while len(g.board.racers) > 0:
-        print(f"{g.players[g.current_player].name}'s turn.")
-        print('racers left: ' + str(g.board.racers))
-        g.roll()
         print(g.board.track)
-        _ = input('')
+        print(f'Availabl Bets: {g.bets}')
+        print(f"{g.players[g.current_player].name}'s turn.")
+        print(f'Money: {g.players[g.current_player].money} , Active Bets: {g.players[g.current_player].bets}')
+
+
+        move = input('Do you want to roll (r) or bet (b)? : ')
+
+        match move:
+            case 'r':
+                g.roll()
+            case 'b':
+                racer = input('Enter the racer you want to bet on to win this leg : ')
+                g.place_bet(g.players[g.current_player], racer)
+
+        
+        _ = input('Press enter to go to next player')
         g.next_player()
         clear()
 
     if g.phase == 'end':
-        print('Game Over')
+        print('##############GAME OVER ' + g.board.track[-1][-1] + ' WINS!!######################')
+        print(g.board.track)
         _ = input('')
     else:
-        print('This is where the end of leg payouts happen')
-        _ = input('')
+        print(g.board.track)
+        print(f'The winner of this leg is Racer {g.leg_leader()}')
+        g.leg_payout()
+        print('After paying out the bets for this Leg, here is the standings')
+        for player in g.players:
+            print(f'{player.name}: {player.money}')
+        _ = input('Press Enter to start the next leg.')
         leg()
     
 
@@ -38,16 +57,4 @@ print('######## STARTING POSITIONS ########')
 print(g.board.track)
 leg()
 
-
-
-# b1 = game.Board()
-# print('#####STARTING POSITIONS########')
-# print(b1.track)
-# print('###############################')
-# for i in range(15):
-#     b1.roll()
-#     print(b1.track)
-#     print('racers left: ' + str(b1.racers))
-#     x = input('next turn')
-#     clear()
 
