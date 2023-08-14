@@ -24,11 +24,12 @@ class Game:
             print(f'{player.name} ended the leg with {player.money}')
             print(f'{player.name} bet on: {player.bets}')
             payout = 0
-            for bet in player.bets[leader]:
-                payout += bet
-                print(f'{player.name} earned {payout} betting on {leader}')
-            player.money += payout
-            player.bets[leader] = []
+            if leader in player.bets:
+                for bet in player.bets[leader]:
+                    payout += bet
+                    print(f'{player.name} earned {payout} betting on {leader}')
+                player.money += payout
+                del player.bets[leader]
             # after winners have been cleared out, calculate penalties by counting remaining bets in dict
             penalty = 0
             for bets in player.bets.values():
@@ -46,17 +47,18 @@ class Game:
 
     def place_bet(self, player, racer):
         bet = self.bets[racer][0]
+        if racer not in player.bets:
+            player.bets[racer] = []
         player.bets[racer].append(bet)
         self.bets[racer].pop(0)
 
         print(f'Your bets: {player.bets}')
 
-        
 
     def reset_bets(self):
         self.bets = {'A': [5,3,1], 'B': [5,3,1], 'C': [5,3,1], 'D': [5,3,1], 'E': [5,3,1]}
         for player in self.players:
-            player.bets = {'A':[], 'B':[], 'C':[], 'D':[], 'E':[]}
+            player.bets = {}
 
 
     def next_player(self):
@@ -130,5 +132,5 @@ class Board:
 class Player:
     def __init__(self, name) -> None:
         self.name = name
-        self.bets = {'A':[], 'B':[], 'C':[], 'D':[], 'E':[]}
+        self.bets = {}
         self.money = 0
