@@ -3,14 +3,12 @@ import random
 class Game:
     def __init__(self, player_names) -> None:
         self.board = Board()
-        self.shuffle_racers()
-        self.board.starting_positions()
         self.current_player = 0
         self.players = []
         for player in player_names:
             p = Player(player)
             self.players.append(p)
-        self.phase = 'race' # might need to change to int
+        self.phase = 'leg' # might need to change to int
         self.bets = {'A': [5,3,1], 'B': [5,3,1], 'C': [5,3,1], 'D': [5,3,1], 'E': [5,3,1]}
         
     def leg_leader(self):
@@ -25,23 +23,23 @@ class Game:
         for player in self.players:
             print(f'{player.name} ended the leg with {player.money}')
             print(f'{player.name} bet on: {player.bets}')
+            payout = 0
             for bet in player.bets[leader]:
-                player.money += bet
-                print(f'{player.name} earned {bet} betting on {leader}')
-                _ = input('')
+                payout += bet
+                print(f'{player.name} earned {payout} betting on {leader}')
+            player.money += payout
             player.bets[leader] = []
             # after winners have been cleared out, calculate penalties by counting remaining bets in dict
             penalty = 0
             for bets in player.bets.values():
                 for bet in bets:
-                    print(bet)
                     if bet > 0:
                         penalty += 1
-                    print(f'penalty total: {penalty}')
                 
             print(f'{player.name} was penalized {penalty}')
-            player.money = player.money - penalty
-            _ = input('')
+            player.money -= penalty
+            if self.phase == 'payout':
+                self.phase == 'leg'
 
             
 
@@ -51,7 +49,7 @@ class Game:
         player.bets[racer].append(bet)
         self.bets[racer].pop(0)
 
-        print(player.bets)
+        print(f'Your bets: {player.bets}')
 
         
 
@@ -77,6 +75,7 @@ class Game:
     def roll(self):
         racer = self.board.racers[0]
         self.board.racers.pop(0)
+        self.board.racers_remaining.remove(racer)
         unit = self.get_unit(racer)
         roll = random.randint(1,3)
 
@@ -86,7 +85,7 @@ class Game:
                 if target_spot >= len(self.board.track) - 1:
                     target_spot = len(self.board.track) - 1
                     
-                    self.phase = 'end'
+                    self.phase = 'endgame'
                     self.board.racers = []
                 for r in unit:
                     spot.remove(r)
@@ -94,7 +93,12 @@ class Game:
                 break
 
         self.players[self.current_player].money += 1
-        print(f'### RACER: {racer}, UNIT: {unit}, ROLL: {roll} ###')   
+        print(f'### RACER: {racer}, UNIT: {unit}, ROLL: {roll} ###')
+
+        if len(self.board.racers) == 0:
+            self.phase = 'payout'
+            self.shuffle_racers()
+            self.board.racers_remaining = sorted(self.board.racers)   
 
 
     def get_unit(self, racer):
@@ -112,17 +116,16 @@ class Game:
 class Board:
     
     def __init__(self) -> None:
-        
-        self.racers = []
-        #self.racers = ['🐰','🦊','🐻','🐸','🐯']
         self.track = [[],[],[],[],[],[],[],[],[],[]]
-        
-        
-    def starting_positions(self):
-        racers = self.racers
-        for racer in racers:
+        self.racers = ['A','B','C','D','E']
+        random.shuffle(self.racers)
+        for racer in self.racers:
             spot = random.randint(0,2)
             self.track[spot].append(racer)
+        random.shuffle(self.racers)
+        #set new attribute racers_remaining equal to self.racers sorted alphabetically
+        self.racers_remaining = sorted(self.racers)
+        #self.racers = ['🐰','🦊','🐻','🐸','🐯']
 
 class Player:
     def __init__(self, name) -> None:
