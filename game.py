@@ -9,12 +9,65 @@ class Game:
             p = Player(player)
             self.players.append(p)
         self.phase = 'leg' # might need to change to int
-        self.bets = {'A': [5,3,1], 'B': [5,3,1], 'C': [5,3,1], 'D': [5,3,1], 'E': [5,3,1]}
+        self.bets = {'A': [5,3,2], 'B': [5,3,2], 'C': [5,3,2], 'D': [5,3,2], 'E': [5,3,2]}
+        self.prediction_winners = []
+        self.prediction_losers = []
         
+    def prediction_payout(self):
+        winner = self.leg_leader()
+        payouts = [8,5,3,2,1]
+        print(f'Racer {winner} is the winner of the Race!')
+        for player, prediction in self.prediction_winners:
+            if prediction == winner:
+                if payouts[0] == 1:
+                    print(f'{player.name} earned 1 for predicting {prediction} would win!')
+                    player.money += 1
+                else:
+                    print(f'{player.name} earned {payouts[0]} for predicting {prediction} would win!')
+                    player.money += payouts.pop(0)
+            else:
+                print(f'{player.name} lost 1 for predicting {prediction} would win.')
+        
+        loser = self.leg_loser()
+        payouts = [8,5,3,2,1]
+        print(f'Racer {loser} is the loser of the Race')
+        for player, prediction in self.prediction_losers:
+            if prediction == loser:
+                if payouts[0] == 1:
+                    print(f'{player.name} earned 1 for predicting {prediction} would lose!')
+                    player.money += 1
+                else:
+                    print(f'{player.name} earned {payouts[0]} for predicting {prediction} would lose!')
+                    player.money += payouts.pop(0)
+            else:
+                print(f'{player.name} lost 1 for predicting {prediction} would lose.')
+        
+
+
+    def predict_winner(self, player, racer):
+        player.predictions.remove(racer)
+        self.prediction_winners.append((player,racer))
+        print(f'predicted winners: {self.prediction_winners}')
+
+
+
+    def predict_loser(self, player, racer):
+        player.predictions.remove(racer)
+        self.prediction_losers.append((player,racer))
+        print(f'predicted losers: {self.prediction_losers}')
+
+
+    
+    
     def leg_leader(self):
         for spot in reversed(self.board.track):
             if len(spot) > 0:
                 return spot[-1]
+            
+    def leg_loser(self):
+        for spot in self.board.track:
+            if len(spot) > 0:
+                return spot[0]
             
     def leg_payout(self):
         leader = self.leg_leader()
@@ -133,4 +186,5 @@ class Player:
     def __init__(self, name) -> None:
         self.name = name
         self.bets = {}
+        self.predictions = ['A','B','C','D','E']
         self.money = 0
