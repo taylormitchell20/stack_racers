@@ -14,7 +14,7 @@ class Game:
         self.prediction_losers = []
         
     def prediction_payout(self):
-        winner = self.leg_leader()
+        winner = self.get_leg_results(1)
         payouts = [8,5,3,2,1]
         print(f'Racer {winner} is the winner of the Race!')
         for player, prediction in self.prediction_winners:
@@ -43,12 +43,10 @@ class Game:
                 print(f'{player.name} lost 1 for predicting {prediction} would lose.')
         
 
-
     def predict_winner(self, player, racer):
         player.predictions.remove(racer)
         self.prediction_winners.append((player,racer))
         print(f'predicted winners: {self.prediction_winners}')
-
 
 
     def predict_loser(self, player, racer):
@@ -57,25 +55,25 @@ class Game:
         print(f'predicted losers: {self.prediction_losers}')
 
 
-    
-    
-    def leg_leader(self):
+
+    def get_leg_results(self, place):
+        results = []
         for spot in reversed(self.board.track):
-            if len(spot) > 0:
-                return spot[-1]
+            for racer in reversed(spot):
+                results.append(racer)
+        return results[place - 1]
             
-    def leg_loser(self):
-        for spot in self.board.track:
-            if len(spot) > 0:
-                return spot[0]
             
     def leg_payout(self):
-        leader = self.leg_leader()
+        leader = self.get_leg_results(1)
+        second = self.get_leg_results(2)
+        print(f'The winner of this leg is Racer {self.get_leg_results(1)}')
 
         # pay out winners, reset winning racer's bets to empty list
         for player in self.players:
             print(f'{player.name} ended the leg with {player.money}')
             print(f'{player.name} bet on: {player.bets}')
+            # payout bet amounts for any bets on the winner
             payout = 0
             if leader in player.bets:
                 for bet in player.bets[leader]:
@@ -83,7 +81,14 @@ class Game:
                     print(f'{player.name} earned {payout} betting on {leader}')
                 player.money += payout
                 del player.bets[leader]
-            # after winners have been cleared out, calculate penalties by counting remaining bets in dict
+            # payout 1 for any bets on the second place racer
+            if second in player.bets:
+                for bet in player.bets[second]:
+                    payout += 1
+                    print(f'{player.name} earned 1 betting on {second}')
+                player.money += payout
+                del player.bets[second]
+            # after winning bets have been cleared out, calculate penalties by counting remaining bets in dict
             penalty = 0
             for bets in player.bets.values():
                 for bet in bets:
@@ -96,8 +101,6 @@ class Game:
                 self.phase == 'leg'
 
             
-
-
     def place_bet(self, player, racer):
         bet = self.bets[racer][0]
         if racer not in player.bets:
@@ -164,8 +167,6 @@ class Game:
                 for camel in spot[index:]:
                     unit.append(camel)
         return unit
-
-
 
 
 class Board:

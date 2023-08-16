@@ -75,11 +75,10 @@ def endgame():
 def payout():
     clear()
     print(g.board.track)
-    print(f'The winner of this leg is Racer {g.leg_leader()}')
     g.leg_payout()
     print('After paying out the bets for this Leg, here is the standings')
-    for player in g.players:
-        print(f'{player.name}: {player.money}')
+    for i, player in enumerate(sorted(g.players, key=lambda x: x.money, reverse=True)):
+        print(f'{p.ordinal(i+1)} place : {player.name} with {player.money}')
     _ = input('Press Enter to start the next leg.')
     g.phase = 'leg'
 
