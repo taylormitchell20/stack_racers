@@ -130,25 +130,53 @@ class Game:
         self.board.racers = racers
         
 
+    def spot_is_tile(self, spot):
+        if len(self.board.track[spot]) > 0 and type(self.board.track[spot][0]) is tuple:
+            return True
+        else:
+            return False
+        
+    def stack_unit(self, unit, spot, direction = 1):
+        print('stack unit was called')
+        if direction < 0:
+            for r in reversed(unit):
+                self.board.track[spot].insert(0, r)
+        else:
+            for r in unit:
+                    self.board.track[spot].append(r)
+
+        
+
     def roll(self):
         racer = self.board.racers[0]
         self.board.racers.pop(0)
         self.board.racers_remaining.remove(racer)
-        unit = self.get_unit(racer)
         roll = random.randint(1,3)
 
+        # find the spot containing racer
         for i, spot in enumerate(self.board.track):
             if racer in spot:
+                unit = self.get_unit(racer)
                 target_spot = i + roll
+                # if this roll will cross the finish line, put them at the last spot and change phase to endgame
                 if target_spot >= len(self.board.track) - 1:
-                    target_spot = len(self.board.track) - 1
-                    
+                    target_spot = len(self.board.track) - 1               
                     self.phase = 'endgame'
+                    self.stack_unit(unit=unit, spot=target_spot)
                     self.board.racers = []
-                for r in unit:
-                    spot.remove(r)
-                    self.board.track[target_spot].append(r)
-                break
+                    return
+                
+                if self.spot_is_tile(target_spot):
+                    # grab tile info from tuple in track
+                    player = self.board.track[target_spot][0][0]
+                    tile_direction = self.board.track[target_spot][0][1]
+                    print(f'THE CAMEL UNIT LANDED ON A TILE BELONGING TO {player}')
+                    target_spot += tile_direction
+                    self.stack_unit(unit=unit, spot=target_spot, direction=tile_direction)
+                else:
+                    print('calling stack_unit')
+                    self.stack_unit(unit=unit, spot=target_spot)
+                        
 
         self.players[self.current_player].money += 1
         print(f'### RACER: {racer}, UNIT: {unit}, ROLL: {roll} ###')
@@ -166,13 +194,14 @@ class Game:
                 index = spot.index(racer)
                 for camel in spot[index:]:
                     unit.append(camel)
+                    spot.remove(camel)
         return unit
 
 
 class Board:
     
     def __init__(self) -> None:
-        self.track = [[],[],[],[],[],[],[],[],[],[]]
+        self.track = [[],[],[],[],[],[('player1',1)],[],[],[],[]]
         self.racers = ['A','B','C','D','E']
         random.shuffle(self.racers)
         for racer in self.racers:
@@ -188,3 +217,4 @@ class Player:
         self.bets = {}
         self.predictions = ['A','B','C','D','E']
         self.money = 0
+        self.has_tile = True
