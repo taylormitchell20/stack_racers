@@ -151,12 +151,12 @@ class Game:
         racer = self.board.racers[0]
         self.board.racers.pop(0)
         self.board.racers_remaining.remove(racer)
+        unit = self.get_unit(racer)
         roll = random.randint(1,3)
 
         # find the spot containing racer
         for i, spot in enumerate(self.board.track):
             if racer in spot:
-                unit = self.get_unit(racer)
                 target_spot = i + roll
                 # if this roll will cross the finish line, put them at the last spot and change phase to endgame
                 if target_spot >= len(self.board.track) - 1:
@@ -164,15 +164,15 @@ class Game:
                     self.phase = 'endgame'
                     self.stack_unit(unit=unit, spot=target_spot)
                     self.board.racers = []
-                    return
                 
-                if self.spot_is_tile(target_spot):
+                elif self.spot_is_tile(target_spot):
                     # grab tile info from tuple in track
                     player = self.board.track[target_spot][0][0]
                     tile_direction = self.board.track[target_spot][0][1]
                     print(f'THE CAMEL UNIT LANDED ON A TILE BELONGING TO {player}')
                     target_spot += tile_direction
                     self.stack_unit(unit=unit, spot=target_spot, direction=tile_direction)
+
                 else:
                     print('calling stack_unit')
                     self.stack_unit(unit=unit, spot=target_spot)
@@ -194,7 +194,6 @@ class Game:
                 index = spot.index(racer)
                 for camel in spot[index:]:
                     unit.append(camel)
-                    spot.remove(camel)
         return unit
 
 
