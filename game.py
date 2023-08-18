@@ -8,7 +8,7 @@ class Game:
         for player in player_names:
             p = Player(player)
             self.players.append(p)
-        self.phase = 'leg' # might need to change to int
+        self.phase = 'leg' # leg, payout, endgame
         self.bets = {'A': [5,3,2], 'B': [5,3,2], 'C': [5,3,2], 'D': [5,3,2], 'E': [5,3,2]}
         self.prediction_winners = []
         self.prediction_losers = []
@@ -78,16 +78,16 @@ class Game:
             if leader in player.bets:
                 for bet in player.bets[leader]:
                     payout += bet
-                    print(f'{player.name} earned {payout} betting on {leader}')
-                player.money += payout
+                    print(f'{player.name} earned {bet} betting on {leader}')
+
                 del player.bets[leader]
             # payout 1 for any bets on the second place racer
             if second in player.bets:
                 for bet in player.bets[second]:
                     payout += 1
                     print(f'{player.name} earned 1 betting on {second}')
-                player.money += payout
                 del player.bets[second]
+            player.money += payout
             # after winning bets have been cleared out, calculate penalties by counting remaining bets in dict
             penalty = 0
             for bets in player.bets.values():
@@ -179,7 +179,6 @@ class Board:
             spot = random.randint(0,2)
             self.track[spot].append(racer)
         random.shuffle(self.racers)
-        #set new attribute racers_remaining equal to self.racers sorted alphabetically
         self.racers_remaining = sorted(self.racers)
         #self.racers = ['🐰','🦊','🐻','🐸','🐯']
 
