@@ -28,7 +28,7 @@ def leg():
 
     # main turn loop. get player input and execute chosen move
     move = ''
-    move = input('Do you want to roll (r), bet (b), or make prediction (p)? : ')
+    move = input('Which move would you like to make:\n (r) roll\n (b) bet\n (p) make prediction\n (t) place your tile\n Your choice: ')
 
     match move:
         case 'r': # call game object roll method to move racers
@@ -55,6 +55,21 @@ def leg():
                 g.predict_winner(g.players[g.current_player], racer)
             elif prediction == 'l':
                 g.predict_loser(g.players[g.current_player], racer)
+
+        case 't': # place tile on board
+            spot = int(input('Enter the spot you want to place your tile : '))
+            while not g.is_tile_valid(spot):
+                print('That is not a valid spot to place a tile.')
+                spot = int(input('Enter the spot you want to place your tile : '))
+            direction = input('Which type of tile would you like to place, forward or backward (f/b): ')
+            while direction not in ['f','b']:
+                print('That is not a valid direction.')
+                direction = input('Which type of tile would you like to place, forward or backward (f/b): ')
+            if direction == 'f':
+                g.place_tile(spot, g.players[g.current_player], 1)
+            elif direction == 'b':
+                g.place_tile(spot, g.players[g.current_player], -1)
+
     
    # current player has made their move. display pass message, increment current player, and clear screen
     _ = input('Press enter to go to next player')
