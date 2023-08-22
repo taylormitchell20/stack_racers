@@ -27,6 +27,7 @@ def leg():
     print(f'Money: {g.players[g.current_player].money} , Active Bets: {g.players[g.current_player].bets}')
 
     # main turn loop. get player input and execute chosen move
+
     move = ''
     move = input('Which move would you like to make:\n (r) roll\n (b) bet\n (p) make prediction\n (t) place your tile\n Your choice: ')
 

@@ -8,7 +8,7 @@ class Game:
         for player in player_names:
             p = Player(player)
             self.players.append(p)
-        self.phase = 'leg' # leg, payout, endgame
+        self.phase = 'leg' # might need to change to int
         self.bets = {'A': [5,3,2], 'B': [5,3,2], 'C': [5,3,2], 'D': [5,3,2], 'E': [5,3,2]}
         self.prediction_winners = []
         self.prediction_losers = []
@@ -112,16 +112,16 @@ class Game:
             if leader in player.bets:
                 for bet in player.bets[leader]:
                     payout += bet
-                    print(f'{player.name} earned {bet} betting on {leader}')
-
+                    print(f'{player.name} earned {payout} betting on {leader}')
+                player.money += payout
                 del player.bets[leader]
             # payout 1 for any bets on the second place racer
             if second in player.bets:
                 for bet in player.bets[second]:
                     payout += 1
                     print(f'{player.name} earned 1 betting on {second}')
+                player.money += payout
                 del player.bets[second]
-            player.money += payout
             # after winning bets have been cleared out, calculate penalties by counting remaining bets in dict
             penalty = 0
             for bets in player.bets.values():
@@ -164,6 +164,23 @@ class Game:
         self.board.racers = racers
         
 
+    def spot_is_tile(self, spot):
+        if len(self.board.track[spot]) > 0 and type(self.board.track[spot][0]) is tuple:
+            return True
+        else:
+            return False
+        
+    def stack_unit(self, unit, spot, direction = 1):
+        print('stack unit was called')
+        if direction < 0:
+            for r in reversed(unit):
+                self.board.track[spot].insert(0, r)
+        else:
+            for r in unit:
+                    self.board.track[spot].append(r)
+
+        
+
     def roll(self):
         racer = self.board.racers[0]
         self.board.racers.remove(racer)
@@ -171,13 +188,15 @@ class Game:
         unit = self.get_unit(racer)
         roll = random.randint(1,3)
 
+        # find the spot containing racer
         for i, spot in enumerate(self.board.track):
             if racer in spot:
                 target_spot = i + roll
+                # if this roll will cross the finish line, put them at the last spot and change phase to endgame
                 if target_spot >= len(self.board.track) - 1:
-                    target_spot = len(self.board.track) - 1
-                    
+                    target_spot = len(self.board.track) - 1               
                     self.phase = 'endgame'
+                    
                     #self.board.racers = []
                 # remove all members of unit from current spot
                 for camel in unit:
@@ -233,13 +252,14 @@ class Game:
 class Board:
     
     def __init__(self) -> None:
-        self.track = [[],[],[],[],[],[],[],[],[],[]]
+        self.track = [[],[],[],[],[],[('player1',1)],[],[],[],[]]
         self.racers = ['A','B','C','D','E']
         random.shuffle(self.racers)
         for racer in self.racers:
             spot = random.randint(0,2)
             self.track[spot].append(racer)
         random.shuffle(self.racers)
+        #set new attribute racers_remaining equal to self.racers sorted alphabetically
         self.racers_remaining = sorted(self.racers)
         #self.racers = ['🐰','🦊','🐻','🐸','🐯']
 
