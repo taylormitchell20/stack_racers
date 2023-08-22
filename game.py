@@ -13,14 +13,36 @@ class Game:
         self.prediction_winners = []
         self.prediction_losers = []
 
+    def reset_tiles(self):
+        for i, space in enumerate(self.board.track):
+            if len(space) > 0 and type(space[0]) == tuple:
+                self.board.track[i] = []
+        for player in self.players:
+            player.tile = True
+
     def place_tile(self, spot, player, direction):
+        if player.tile == False:
+            _ = input('Your tile is already on the track. It will be moved to the new spot.')
+            for i, space in enumerate(self.board.track):
+                if len(space) > 0 and type(space[0]) == tuple and space[0][0].name == player.name:
+                    self.board.track[i] = []
+
         self.board.track[spot].append((player, direction))
+        player.tile = False
 
     def is_tile_valid(self, spot):
-        if self.board.track[spot] == [] and self.board.track[spot+1] == [] and self.board.track[spot-1] == []:
-            return True
-        else:
+        track = self.board.track
+        if len(track[spot]) > 0:
             return False
+        elif spot >= len(track) - 1:
+            return False
+        elif len(track[spot +1]) > 0 and type(track[spot +1][0]) == tuple:
+            return False
+        elif len(track[spot -1]) > 0 and type(track[spot -1][0]) == tuple:
+            return False
+        else:
+            return True
+        
         
     def prediction_payout(self):
         winner = self.get_leg_results(1)
@@ -37,7 +59,7 @@ class Game:
             else:
                 print(f'{player.name} lost 1 for predicting {prediction} would win.')
         
-        loser = self.leg_loser()
+        loser = self.get_leg_results(-1)
         payouts = [8,5,3,2,1]
         print(f'Racer {loser} is the loser of the Race')
         for player, prediction in self.prediction_losers:
@@ -70,7 +92,10 @@ class Game:
         for spot in reversed(self.board.track):
             for racer in reversed(spot):
                 results.append(racer)
-        return results[place - 1]
+        if place == -1:
+            return results[-1]
+        else:
+            return results[place - 1]
             
             
     def leg_payout(self):
@@ -158,7 +183,7 @@ class Game:
 
     def roll(self):
         racer = self.board.racers[0]
-        self.board.racers.pop(0)
+        self.board.racers.remove(racer)
         self.board.racers_remaining.remove(racer)
         unit = self.get_unit(racer)
         roll = random.randint(1,3)
@@ -171,21 +196,28 @@ class Game:
                 if target_spot >= len(self.board.track) - 1:
                     target_spot = len(self.board.track) - 1               
                     self.phase = 'endgame'
-                    self.stack_unit(unit=unit, spot=target_spot)
-                    self.board.racers = []
-                
-                elif self.spot_is_tile(target_spot):
-                    # grab tile info from tuple in track
-                    player = self.board.track[target_spot][0][0]
-                    tile_direction = self.board.track[target_spot][0][1]
-                    print(f'THE CAMEL UNIT LANDED ON A TILE BELONGING TO {player}')
-                    target_spot += tile_direction
-                    self.stack_unit(unit=unit, spot=target_spot, direction=tile_direction)
+                    #self.board.racers = []
+                # remove all members of unit from current spot
+                for camel in unit:
+                    self.board.track[i].remove(camel)
 
+                # if type at target spot is tuple then it is a tile, call stack_unit accordingly
+                if len(self.board.track[target_spot]) > 0 and type(self.board.track[target_spot][0]) == tuple:
+                    # award 1 point to player who placed tile
+                    self.board.track[target_spot][0][0].money += 1
+                    # if tile is forward, stack unit on top of next space
+                    if self.board.track[target_spot][0][1] == 1:
+                        print(f'The racers landed on a forward tile belonging to {self.board.track[target_spot][0][0].name}. 1 point was awarded to them')
+                        target_spot += 1
+                        self.stack_unit(target_spot, unit)
+                    # if tile is backward, stack unit on bottom of previous space
+                    elif self.board.track[target_spot][0][1] == -1:
+                        print(f'The racers landed on a backward tile belonging to {self.board.track[target_spot][0][0].name}. 1 point was awarded to them')
+                        target_spot -= 1
+                        self.stack_unit(target_spot, unit, reversed=True)
                 else:
-                    print('calling stack_unit')
-                    self.stack_unit(unit=unit, spot=target_spot)
-                        
+                    self.stack_unit(target_spot, unit)                
+                break
 
         self.players[self.current_player].money += 1
         print(f'### RACER: {racer}, UNIT: {unit}, ROLL: {roll} ###')
@@ -195,6 +227,16 @@ class Game:
             self.shuffle_racers()
             self.board.racers_remaining = sorted(self.board.racers)   
 
+    def stack_unit(self, spot, unit, reversed=False):
+        target_spot = spot
+        # if stacking is result of landing on backwards tile, camel unit goes 'under' existing stack
+        if reversed:
+            unit.reverse()
+            for racer in unit:
+                self.board.track[target_spot].insert(0, racer)
+        else:
+            for racer in unit:
+                self.board.track[target_spot].append(racer)
 
     def get_unit(self, racer):
         unit = []

@@ -94,6 +94,8 @@ def payout():
     print('After paying out the bets for this Leg, here is the standings')
     for i, player in enumerate(sorted(g.players, key=lambda x: x.money, reverse=True)):
         print(f'{p.ordinal(i+1)} place : {player.name} with {player.money}')
+
+    g.reset_tiles()
     _ = input('Press Enter to start the next leg.')
     g.phase = 'leg'
 
@@ -115,6 +117,7 @@ def game_loop():
 
     while g.phase == 'endgame':
         endgame()
+        g.phase = ''    
 
 g = game.Game(['player1','player2'])
 print('######## STARTING POSITIONS ########')
