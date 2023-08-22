@@ -12,6 +12,15 @@ class Game:
         self.bets = {'A': [5,3,2], 'B': [5,3,2], 'C': [5,3,2], 'D': [5,3,2], 'E': [5,3,2]}
         self.prediction_winners = []
         self.prediction_losers = []
+
+    def place_tile(self, spot, player, direction):
+        self.board.track[spot].append((player, direction))
+
+    def is_tile_valid(self, spot):
+        if self.board.track[spot] == [] and self.board.track[spot+1] == [] and self.board.track[spot-1] == []:
+            return True
+        else:
+            return False
         
     def prediction_payout(self):
         winner = self.get_leg_results(1)
@@ -217,4 +226,4 @@ class Player:
         self.bets = {}
         self.predictions = ['A','B','C','D','E']
         self.money = 0
-        self.has_tile = True
+        self.tile = True
